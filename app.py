@@ -998,8 +998,7 @@ elif menu == "📝 Penggunaan":
                 with col1:
                     selected_barang = st.selectbox("📦 Pilih Barang", list(barang_options.keys()))
                     jumlah_pinjam = st.number_input("📊 Jumlah Gunakan", min_value=1, value=1, step=1)
-                    unit_options = generate_unit_options()
-                    unit = st.selectbox("🏠 Digunakan untuk Unit", unit_options)
+                    unit = st.text_input("🏠 Unit", placeholder='gudang barat')
                 with col2:
                     tanggal_pinjam = st.date_input("📅 Tanggal Gunakan", value=datetime.now().date())
                     st.write("")
@@ -1372,12 +1371,13 @@ elif menu == "📊 Laporan":
                 week_num = int(week_filter.split()[1])
                 df_month = df_month[df_month['week_of_month'] == week_num]
 
-            weekly_data = df_month.groupby(['minggu', 'nama_barang'])['jumlah_pinjam'].sum().reset_index()
+            weekly_data = df_month.groupby(['minggu', 'nama_barang', 'besaran_stok'])['jumlah_pinjam'].sum().reset_index()
 
             weekly_data = weekly_data.rename(columns={
                 'minggu': 'Minggu',
                 'nama_barang': 'Nama Barang',
-                'jumlah_pinjam': 'Jumlah Penggunaan'
+                'jumlah_pinjam': 'Jumlah Penggunaan',
+                'besaran_stok' : 'Satuan'
             })
 
             if not weekly_data.empty:
@@ -1425,11 +1425,12 @@ elif menu == "📊 Laporan":
 
             if selected_month_filter != "Semua Bulan":
                 df_monthly_filtered = df_monthly[df_monthly['bulan'] == selected_month_filter]
-                monthly_data = df_monthly_filtered.groupby(['bulan', 'nama_barang'])['jumlah_pinjam'].sum().reset_index()
+                monthly_data = df_monthly_filtered.groupby(['bulan', 'nama_barang', 'besaran_stok'])['jumlah_pinjam'].sum().reset_index()
                 monthly_data = monthly_data.rename(columns={
                     'bulan': 'Bulan',
                     'nama_barang': 'Nama Barang',
-                    'jumlah_pinjam': 'Jumlah Penggunaan'
+                    'jumlah_pinjam': 'Jumlah Penggunaan',
+                    'besaran_stok' : 'Satuan'
                 })
                 chart_title = f"📈 Penggunaan Bulanan - {selected_month_filter}"
             else:
@@ -1488,7 +1489,7 @@ elif menu == "💰 Kelola HPP":
             
             with col1:
                 unit_options = generate_unit_options()
-                unit_hpp = st.selectbox("🏠 Unit", unit_options)
+                unit_hpp = st.text_input("🏠 Unit", placeholder='gudang barat')
                 tanggal_hpp = st.date_input("📅 Tanggal", value=datetime.now().date())
                 material_hpp = st.text_input("🔨 Nama Material")
             
