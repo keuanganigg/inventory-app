@@ -191,7 +191,7 @@ def create_excel_download(df, filename_prefix, button_label):
 def generate_unit_options():
     units = []
     for letter in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
-        for number in range(1, 15):
+        for number in range(1, 17):
             units.append(f"{letter}{number}")
     return units
 
@@ -1434,11 +1434,12 @@ elif menu == "📊 Laporan":
                 })
                 chart_title = f"📈 Penggunaan Bulanan - {selected_month_filter}"
             else:
-                monthly_data = df_monthly.groupby(['bulan', 'nama_barang'])['jumlah_pinjam'].sum().reset_index()
+                monthly_data = df_monthly.groupby(['bulan', 'nama_barang', 'besaran_stok'])['jumlah_pinjam'].sum().reset_index()
                 monthly_data = monthly_data.rename(columns={
                     'bulan': 'Bulan',
                     'nama_barang': 'Nama Barang',
-                    'jumlah_pinjam': 'Jumlah Penggunaan'
+                    'jumlah_pinjam': 'Jumlah Penggunaan',
+                    'besaran_stok' : 'Satuan'
                 })
                 chart_title = "📈 Trend Penggunaan Bulanan (Semua Bulan)"
 
