@@ -2212,6 +2212,10 @@ elif menu == "📥 Import/Export Data":
 
                 st.success(f"✅ File berhasil diupload! Ditemukan {len(sheet_names)} sheet.")
 
+                # Inisialisasi state sheet terpilih (WAJIB)
+                if 'selected_sheets_for_import' not in st.session_state:
+                    st.session_state.selected_sheets_for_import = []
+
                 for name in sheet_names:
                     if name not in st.session_state.selected_sheets:
                         st.session_state.selected_sheets[name] = True
@@ -2219,7 +2223,7 @@ elif menu == "📥 Import/Export Data":
                 st.markdown("---")
                 st.subheader("🔧 Konfigurasi Import per Sheet")
 
-                selected_sheets_for_import = []
+                st.session_state.selected_sheets_for_import = []
 
                 for sheet_name in sheet_names:
                     default_unit = st.session_state.import_config.get(sheet_name, {}).get('unit', 'A1')
@@ -2231,18 +2235,16 @@ elif menu == "📥 Import/Export Data":
                     st.session_state.selected_sheets[sheet_name] = is_selected
 
                     if is_selected:
-                        selected_sheets_for_import.append(sheet_name)
+                        st.session_state.selected_sheets_for_import.append(sheet_name)
                         with st.expander(f"⚙️ Konfigurasi untuk {sheet_name}", expanded=False):
                             col1, col2 = st.columns(2)
 
                             with col1:
-                                unit_options = generate_unit_options()
-                                unit = st.selectbox(
-                                    f"🏠 Unit untuk sheet '{sheet_name}'",
-                                    unit_options,
-                                    index=unit_options.index(default_unit) if default_unit in unit_options else 0,
-                                    key=f"unit_{sheet_name}"
-                                )
+                                    unit = st.text_input(
+                                        f"🏠 Unit untuk sheet '{sheet_name}'",
+                                        placeholder="Contoh: TOTAL / Gudang Barat / Proyek A",
+                                        key=f"unit_{sheet_name}"
+                                    )
 
                             with col2:
                                 tanggal_senin = st.date_input(
@@ -2305,12 +2307,12 @@ elif menu == "📥 Import/Export Data":
                             del st.session_state.import_config[sheet_name]
 
                 st.markdown("---")
-                st.info(f"Total {len(selected_sheets_for_import)} sheet terpilih untuk diimpor.")
+                st.info(f"Total {len(st.session_state.selected_sheets_for_import)} sheet terpilih untuk diimpor.")
 
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
                     if st.button("🚀 Proses Import Sheet Terpilih", type="primary", use_container_width=True, key="import_penggunaan_btn"):
-                        if not selected_sheets_for_import:
+                        if not st.session_state.selected_sheets_for_import:
                             st.error("❌ Tidak ada sheet yang dipilih untuk diimpor!")
                             st.stop()
 
@@ -2321,7 +2323,11 @@ elif menu == "📥 Import/Export Data":
                             conn = sqlite3.connect('inventory_rumah.db')
                             c = conn.cursor()
 
-                            for sheet_name in selected_sheets_for_import:
+                            for sheet_name in st.session_state.selected_sheets_for_import:
+                                config = st.session_state.import_config.get(sheet_name)
+                                if not config or not config.get('unit', '').strip():
+                                    st.error(f"❌ Unit untuk sheet '{sheet_name}' wajib diisi!")
+                                    st.stop()
                                 try:
                                     df_row2 = pd.read_excel(uploaded_file, sheet_name=sheet_name, header=1, nrows=0)
                                     header_row2 = df_row2.columns.tolist()
@@ -2399,7 +2405,7 @@ elif menu == "📥 Import/Export Data":
 
                                             tanggal_penggunaan = tanggal_senin + timedelta(days=day_idx)
 
-                                           # --- Tambah ke tabel peminjaman seperti biasa ---
+                                            # --- Tambah ke tabel peminjaman seperti biasa ---
                                             c.execute("""INSERT INTO peminjaman
                                                             (barang_id, nama_barang, jumlah_pinjam, tanggal_pinjam,
                                                             unit, besaran_stok, gudang)
@@ -2434,7 +2440,7 @@ elif menu == "📥 Import/Export Data":
                             conn.close()
 
                             if total_imported > 0:
-                                st.success(f"✅ Berhasil import **{total_imported}** transaksi penggunaan dari {len(selected_sheets_for_import)} sheet!")
+                                st.success(f"✅ Berhasil import **{total_imported}** transaksi penggunaan dari {len(st.session_state.selected_sheets_for_import)} sheet!")
                                 st.balloons()
                             else:
                                 st.warning("⚠️ Tidak ada transaksi yang berhasil diimport. Cek format file Excel Anda.")
@@ -2452,7 +2458,6 @@ elif menu == "📥 Import/Export Data":
             except Exception as e:
                 st.error(f"❌ Error membaca file: {str(e)}")
                 st.write("Pastikan file Excel Anda memiliki format yang benar dan tidak rusak.")
-
     with tab3:
         st.subheader("💾 Export/Backup Data")
         st.markdown("---")
