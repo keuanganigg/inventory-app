@@ -2226,7 +2226,6 @@ elif menu == "📥 Import/Export Data":
                 st.session_state.selected_sheets_for_import = []
 
                 for sheet_name in sheet_names:
-                    default_unit = st.session_state.import_config.get(sheet_name, {}).get('unit', 'A1')
                     default_date = st.session_state.import_config.get(sheet_name, {}).get('tanggal_senin', datetime.now().date())
 
                     is_selected = st.checkbox(f"✅ Pilih Sheet: **{sheet_name}**",
@@ -2241,7 +2240,7 @@ elif menu == "📥 Import/Export Data":
 
                             with col1:
                                     unit = st.text_input(
-                                        f"🏠 Unit untuk sheet '{sheet_name}'",
+                                        f"🏠 Unit untuk sheet '{sheet_name}' (WAJIB DIISI)",
                                         placeholder="Contoh: TOTAL / Gudang Barat / Proyek A",
                                         key=f"unit_{sheet_name}"
                                     )
@@ -2325,7 +2324,7 @@ elif menu == "📥 Import/Export Data":
 
                             for sheet_name in st.session_state.selected_sheets_for_import:
                                 config = st.session_state.import_config.get(sheet_name)
-                                if not config or not config.get('unit', '').strip():
+                                if not config or not config.get('unit') or not config['unit'].strip():
                                     st.error(f"❌ Unit untuk sheet '{sheet_name}' wajib diisi!")
                                     st.stop()
                                 try:
